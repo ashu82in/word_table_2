@@ -161,6 +161,7 @@ def resize(img, new_width):
 def updateTable():
     # global up_files
     global folder
+    global title
     document = Document("Table_Word.docx")
     document.add_heading(section_selected + " - Images", 2)
     
@@ -172,11 +173,20 @@ def updateTable():
     counter = 0
     counter_cols = 0
     for file in folder.iterdir():
-        cell = table.rows[counter].cells[counter_cols]
+        name = os.path.splitext(file.name)[0]
+        img_no = int(name.split(" ")[1])
+        adj_img_no = img_no - int(title)
+        # st.write(img_no, adj_img_no)
+        row_no = (adj_img_no//3) *2
+        col_no = int(adj_img_no - (row_no*3/2))
+        st.write(img_no, adj_img_no, row_no, col_no)
+        # cell = table.rows[counter].cells[counter_cols]
+        cell = table.rows[row_no].cells[col_no]
         cell._element.clear_content()
         picture = cell.add_paragraph().add_run().add_picture('images_comp/'+file.name, width=Inches(2.6))
-        cell = table.rows[counter+1].cells[counter_cols]
-        name = os.path.splitext(file.name)[0]
+        cell = table.rows[row_no+1].cells[col_no]
+        # cell = table.rows[counter+1].cells[counter_cols]
+        
         cell.text = name
         if counter_cols<2:
             counter_cols = counter_cols + 1
@@ -214,6 +224,7 @@ for i in range(len(up_files)):
 
 st.write(len(up_files))
 
+count_file = 0
 
 for file in up_files:
     try:
@@ -313,7 +324,7 @@ for file in up_files:
             
         
     
-    
+    # st.write(name_index_dict[file.name])
     
     
     # st.write(file)
@@ -322,12 +333,15 @@ for file in up_files:
     name = os.path.splitext(file.name)[0]
     option =   st.selectbox(
             "File Name",
-            tuple([name] + name_list),
-            index=name_index_dict[file.name],
+            # tuple([name] + name_list),
+            tuple(name_list),
+            index= count_file,
+            # index=name_index_dict[file.name],
             )
 
     st.write("You selected:", option)
-    list_temp = [name] + name_list
+    # list_temp = [name] + name_list
+    list_temp = name_list
     position = list_temp.index(option)
 
     name_index_dict[name] = position
@@ -343,6 +357,7 @@ for file in up_files:
     im_resized = im.crop(box)
     # st.image(im_resized)    
     im_resized_final.save("images_comp/"+option+"."+ext)
+    count_file = count_file +1
     
     
 
