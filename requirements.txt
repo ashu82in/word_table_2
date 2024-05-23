@@ -4,3 +4,4 @@ docxtpl
 docx
 pandas
 numpy
+openpyxl
