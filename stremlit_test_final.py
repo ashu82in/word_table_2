@@ -179,7 +179,7 @@ def updateTable():
         # st.write(img_no, adj_img_no)
         row_no = (adj_img_no//3) *2
         col_no = int(adj_img_no - (row_no*3/2))
-        st.write(img_no, adj_img_no, row_no, col_no)
+        #st.write(img_no, adj_img_no, row_no, col_no)
         # cell = table.rows[counter].cells[counter_cols]
         cell = table.rows[row_no].cells[col_no]
         cell._element.clear_content()
