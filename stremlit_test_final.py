@@ -5,7 +5,8 @@ Created on Wed May 15 16:22:54 2024
 
 @author: ashutoshgoenka
 """
-
+import pandas as pd
+import numpy as np
 import streamlit as st
 from PIL import Image
 import PIL
@@ -19,6 +20,7 @@ import docxtpl
 from docx import Document
 from docx.shared import Inches
 from docx.enum.section import WD_ORIENT
+from docx.shared import Cm, Inches
 
 
 st.set_page_config(layout="wide")
@@ -33,7 +35,116 @@ image_size_dict = {}
 original_image_size= {}
 new_width_dict = {}
 new_height_dict = {}
+section_selected = ""
 
+def set_column_width(column, width):
+    for cell in column.cells:
+        cell.width = width
+
+
+#Create a document with Landscape and saved
+document = Document()
+section = document.sections[0]
+section.orientation = WD_ORIENT.LANDSCAPE
+new_width, new_height = section.page_height, section.page_width
+section.page_width = new_width
+section.page_height = new_height
+document.save("Table_Word.docx")
+# Document Created
+
+
+# Upload Observation File
+st.title("Upload Observation")
+obs_file = st.file_uploader("Upload Observation Excel File", type=['csv','xlsx'],accept_multiple_files=False,key="fileUploader")
+if obs_file is not None:
+    df = pd.read_excel(obs_file)
+    st.write(df)
+
+    section_selected = df["Section"][0]
+    
+    df = df[df["Section"] == section_selected]
+    
+    df_rem = pd.read_excel("remedy_excel.xlsx")
+    
+    remedy_dict = {}
+    for idx, val in df_rem.iterrows():
+    #     print(val)
+        remedy_dict[val["Observations"]] = val["Remedy"]
+        
+    df = df.dropna(thresh=5)
+    
+    df["Photo Start"] = pd.to_numeric(df['Photo Start']).astype('Int64')
+    df["Photo End"] = df["Photo End"].fillna(0)
+    df["Photo End"] = pd.to_numeric(df['Photo End']).astype('Int64')
+    
+    
+    # Adding Photo column which specifies photo number
+    order_of_section = []
+    df["Photos"] = ""
+    df["Action Needed"] = ""
+    df["Observations + Location"] = ""
+    
+    for idx, val in df.iterrows():
+    #     print(idx, val)
+        if val["Section"] not in order_of_section:
+            order_of_section.append(val["Section"])
+        
+        if np.isnan(val["Photo Start"]):
+            pass
+        elif val["Photo End"] == 0:
+            df.loc[idx,"Photos"] = "Image " + str(val["Photo Start"])
+        else:
+            df.loc[idx,"Photos"] = "Image " + str(val["Photo Start"]) + " - " + str(val["Photo End"])
+        
+        df.loc[idx,"Action Needed"] = remedy_dict[val["Observations"]]
+        
+        val_temp = val["Observations"] +"\n"+"\n"+  val["Location"] + "\n"
+        df.loc[idx,"Observations + Location"] = val_temp
+    # Photo Column added
+    
+    col = ["Item", "Observations + Location", "Action Needed", "Category", "Photos", "Remarks/Action By"]
+    df_final = df.copy(deep = True)
+    df_final =  df_final.reindex(columns=col)
+    
+    st.write("Table to be added")
+    st.write(df_final)
+    #Add text table to word
+    doc = docx.Document('Table_Word.docx')
+    doc.add_heading(section_selected, 1)
+
+    document.add_paragraph(section_selected)
+    # add a table to the end and create a reference variable
+    # extra row is so we can add the header row
+    t = doc.add_table(df_final.shape[0]+1, df_final.shape[1])
+    t.style = 'Table Grid'
+    t.allow_autofit = False
+    t.columns[1].width = Cm(7.5)
+    st.write(df_final.shape)
+    # add the header rows.
+    for j in range(df_final.shape[-1]):
+        t.cell(0,j).text = df_final.columns[j]
+    
+    # add the rest of the data frame
+    for i in range(df_final.shape[0]):
+        for j in range(df_final.shape[-1]):
+            t.cell(i+1,j).text = str(df_final.values[i,j])
+    
+    set_column_width(t.columns[1], docx.shared.Cm(7.5))
+    set_column_width(t.columns[2], docx.shared.Cm(5.5))
+    set_column_width(t.columns[3], docx.shared.Cm(2))
+    # save the doc
+    document.add_paragraph('')
+    doc.save('Table_Word.docx')
+    
+    
+    
+    
+    #Text Table added
+
+
+
+
+#upload Images
 st.title("Resize Images")
 # st.write('My first app Hello *world!*')
 up_files = st.file_uploader("Upload Image Files", type = ["png", "jpeg", "jpg"] ,accept_multiple_files=True)
@@ -51,6 +162,8 @@ def updateTable():
     # global up_files
     global folder
     document = Document("Table_Word.docx")
+    document.add_heading(section_selected + " - Images", 2)
+    
     table = document.add_table(rows = 7 , cols = 3)
     # hdr_cells = table.rows[0].cells
     # hdr_cells[0].text = 'Item'     
@@ -238,15 +351,15 @@ directory_to_zip = "images_comp"
 folder = pathlib.Path(directory_to_zip)
 # st.write(folder)
 
-#Create a document with Landscape and saved
-document = Document()
-section = document.sections[0]
-section.orientation = WD_ORIENT.LANDSCAPE
-new_width, new_height = section.page_height, section.page_width
-section.page_width = new_width
-section.page_height = new_height
-document.save("Table_Word.docx")
-# Document Created
+# #Create a document with Landscape and saved
+# document = Document()
+# section = document.sections[0]
+# section.orientation = WD_ORIENT.LANDSCAPE
+# new_width, new_height = section.page_height, section.page_width
+# section.page_width = new_width
+# section.page_height = new_height
+# document.save("Table_Word.docx")
+# # Document Created
 
 
 with ZipFile(zip_path, 'w', ZIP_DEFLATED) as zip:
