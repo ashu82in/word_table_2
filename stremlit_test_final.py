@@ -199,7 +199,7 @@ def updateTable():
     
     document.add_heading(section_selected, 1)
 
-    document.add_paragraph(section_selected)
+    # document.add_paragraph(section_selected)
     # add a table to the end and create a reference variable
     # extra row is so we can add the header row
     t = document.add_table(df_final.shape[0]+1, df_final.shape[1])
