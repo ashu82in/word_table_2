@@ -44,11 +44,8 @@ def set_column_width(column, width):
         cell.width = width
 
 
-try:
-    document = Document("Table_Word.docx")
-    
-except:
-    #Create a document with Landscape and saved
+
+def createfile():
     document = Document()
     section = document.sections[0]
     section.orientation = WD_ORIENT.LANDSCAPE
@@ -56,12 +53,26 @@ except:
     section.page_width = new_width
     section.page_height = new_height
     document.save("Table_Word.docx")
-    # Document Created
+
+#create new File
+# try:
+#     document = Document("Table_Word.docx")
+    
+# except:
+#     #Create a document with Landscape and saved
+#     document = Document()
+#     section = document.sections[0]
+#     section.orientation = WD_ORIENT.LANDSCAPE
+#     new_width, new_height = section.page_height, section.page_width
+#     section.page_width = new_width
+#     section.page_height = new_height
+#     document.save("Table_Word.docx")
+#     # Document Created
 
 
 # Upload Observation File
 st.title("Upload Observation")
-obs_file = st.file_uploader("Upload Observation Excel File", type=['csv','xlsx'],accept_multiple_files=False,key="fileUploader")
+obs_file = st.file_uploader("Upload Observation Excel File", type=['csv','xlsx'],accept_multiple_files=False,key="fileUploader", on_change=createfile)
 if obs_file is not None:
     df = pd.read_excel(obs_file)
     df = df.dropna(thresh=5)
