@@ -452,32 +452,33 @@ with open("images_compressed.zip", "rb") as fp:
 
 # if obs_file is not None:
 #     updateTable()
-try:
-    with open("Table_Word.docx", "rb") as fp:
-    
-        btn_1 = st.button(
-                label="Update Word File",
-                on_click=updateTable,       
-            )
-except:
-    pass
-    # st.write(btn_1)
-    
-    # if btn_1:
-    #     st.write("Running Update Function")
-    #     updateTable(up_files)
-
-try:
-    with open("Table_Word.docx", "rb") as fp:
-    
-        btn_1 = st.download_button(
-                label="Download Word File",
-                data=fp,
-                file_name="Table_Word_docx",
-                mime="docx"
+if obs_file is not None:
+    try:
+        with open("Table_Word.docx", "rb") as fp:
+        
+            btn_1 = st.button(
+                    label="Update Word File",
+                    on_click=updateTable,       
                 )
-except:
-    pass
+    except:
+        pass
+        # st.write(btn_1)
+        
+        # if btn_1:
+        #     st.write("Running Update Function")
+        #     updateTable(up_files)
+    
+    try:
+        with open("Table_Word.docx", "rb") as fp:
+        
+            btn_1 = st.download_button(
+                    label="Download Word File",
+                    data=fp,
+                    file_name="Table_Word_docx",
+                    mime="docx"
+                    )
+    except:
+        pass
         
 
 
