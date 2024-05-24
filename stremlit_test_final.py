@@ -23,6 +23,7 @@ from docx.enum.section import WD_ORIENT
 from docx.shared import Cm, Inches
 
 
+
 st.set_page_config(layout="wide")
 
 try:
@@ -36,21 +37,26 @@ original_image_size= {}
 new_width_dict = {}
 new_height_dict = {}
 section_selected = ""
+photo_start=1
 
 def set_column_width(column, width):
     for cell in column.cells:
         cell.width = width
 
 
-#Create a document with Landscape and saved
-document = Document()
-section = document.sections[0]
-section.orientation = WD_ORIENT.LANDSCAPE
-new_width, new_height = section.page_height, section.page_width
-section.page_width = new_width
-section.page_height = new_height
-document.save("Table_Word.docx")
-# Document Created
+try:
+    document = Document("Table_Word.docx")
+    
+except:
+    #Create a document with Landscape and saved
+    document = Document()
+    section = document.sections[0]
+    section.orientation = WD_ORIENT.LANDSCAPE
+    new_width, new_height = section.page_height, section.page_width
+    section.page_width = new_width
+    section.page_height = new_height
+    document.save("Table_Word.docx")
+    # Document Created
 
 
 # Upload Observation File
@@ -58,11 +64,22 @@ st.title("Upload Observation")
 obs_file = st.file_uploader("Upload Observation Excel File", type=['csv','xlsx'],accept_multiple_files=False,key="fileUploader")
 if obs_file is not None:
     df = pd.read_excel(obs_file)
+    df = df.dropna(thresh=5)
     st.write(df)
-
-    section_selected = df["Section"][0]
+    
+    section_list = list(df["Section"].unique())
+    
+    # section_selected = df["Section"][0]
+    section_selected =   st.selectbox(
+            "Section",
+            # tuple([name] + name_list),
+            tuple(section_list),
+            index= 0,
+            # index=name_index_dict[file.name],
+            )
     
     df = df[df["Section"] == section_selected]
+    photo_start = int(df["Photo Start"].min())
     
     df_rem = pd.read_excel("remedy_excel.xlsx")
     
@@ -71,7 +88,7 @@ if obs_file is not None:
     #     print(val)
         remedy_dict[val["Observations"]] = val["Remedy"]
         
-    df = df.dropna(thresh=5)
+    
     
     df["Photo Start"] = pd.to_numeric(df['Photo Start']).astype('Int64')
     df["Photo End"] = df["Photo End"].fillna(0)
@@ -84,6 +101,9 @@ if obs_file is not None:
     df["Action Needed"] = ""
     df["Observations + Location"] = ""
     
+    
+    
+
     for idx, val in df.iterrows():
     #     print(idx, val)
         if val["Section"] not in order_of_section:
@@ -109,32 +129,32 @@ if obs_file is not None:
     st.write("Table to be added")
     st.write(df_final)
     #Add text table to word
-    doc = docx.Document('Table_Word.docx')
-    doc.add_heading(section_selected, 1)
+    # doc = docx.Document('Table_Word.docx')
+    # doc.add_heading(section_selected, 1)
 
-    document.add_paragraph(section_selected)
-    # add a table to the end and create a reference variable
-    # extra row is so we can add the header row
-    t = doc.add_table(df_final.shape[0]+1, df_final.shape[1])
-    t.style = 'Table Grid'
-    t.allow_autofit = False
-    t.columns[1].width = Cm(7.5)
-    st.write(df_final.shape)
-    # add the header rows.
-    for j in range(df_final.shape[-1]):
-        t.cell(0,j).text = df_final.columns[j]
+    # document.add_paragraph(section_selected)
+    # # add a table to the end and create a reference variable
+    # # extra row is so we can add the header row
+    # t = doc.add_table(df_final.shape[0]+1, df_final.shape[1])
+    # t.style = 'Table Grid'
+    # t.allow_autofit = False
+    # t.columns[1].width = Cm(7.5)
+    # st.write(df_final.shape)
+    # # add the header rows.
+    # for j in range(df_final.shape[-1]):
+    #     t.cell(0,j).text = df_final.columns[j]
     
-    # add the rest of the data frame
-    for i in range(df_final.shape[0]):
-        for j in range(df_final.shape[-1]):
-            t.cell(i+1,j).text = str(df_final.values[i,j])
+    # # add the rest of the data frame
+    # for i in range(df_final.shape[0]):
+    #     for j in range(df_final.shape[-1]):
+    #         t.cell(i+1,j).text = str(df_final.values[i,j])
     
-    set_column_width(t.columns[1], docx.shared.Cm(7.5))
-    set_column_width(t.columns[2], docx.shared.Cm(5.5))
-    set_column_width(t.columns[3], docx.shared.Cm(2))
-    # save the doc
-    document.add_paragraph('')
-    doc.save('Table_Word.docx')
+    # set_column_width(t.columns[1], docx.shared.Cm(7.5))
+    # set_column_width(t.columns[2], docx.shared.Cm(5.5))
+    # set_column_width(t.columns[3], docx.shared.Cm(2))
+    # # save the doc
+    # document.add_paragraph('')
+    # doc.save('Table_Word.docx')
     
     
     
@@ -162,7 +182,37 @@ def updateTable():
     # global up_files
     global folder
     global title
+    global selection_selected
+    global df_final
     document = Document("Table_Word.docx")
+    
+    document.add_heading(section_selected, 1)
+
+    document.add_paragraph(section_selected)
+    # add a table to the end and create a reference variable
+    # extra row is so we can add the header row
+    t = document.add_table(df_final.shape[0]+1, df_final.shape[1])
+    t.style = 'Table Grid'
+    t.allow_autofit = False
+    t.columns[1].width = Cm(7.5)
+    st.write(df_final.shape)
+    # add the header rows.
+    for j in range(df_final.shape[-1]):
+        t.cell(0,j).text = df_final.columns[j]
+    
+    # add the rest of the data frame
+    for i in range(df_final.shape[0]):
+        for j in range(df_final.shape[-1]):
+            t.cell(i+1,j).text = str(df_final.values[i,j])
+    
+    set_column_width(t.columns[1], docx.shared.Cm(7.5))
+    set_column_width(t.columns[2], docx.shared.Cm(5.5))
+    set_column_width(t.columns[3], docx.shared.Cm(2))
+    # save the doc
+    document.add_paragraph('')
+    
+    
+    
     document.add_heading(section_selected + " - Images", 2)
     
     table = document.add_table(rows = 7 , cols = 3)
@@ -179,7 +229,7 @@ def updateTable():
         # st.write(img_no, adj_img_no)
         row_no = (adj_img_no//3) *2
         col_no = int(adj_img_no - (row_no*3/2))
-        #st.write(img_no, adj_img_no, row_no, col_no)
+        # st.write(img_no, adj_img_no, row_no, col_no)
         # cell = table.rows[counter].cells[counter_cols]
         cell = table.rows[row_no].cells[col_no]
         cell._element.clear_content()
@@ -207,7 +257,7 @@ def resize_image(img, width, height):
     im_resized = im.crop(box)
     return im_resized
 
-title = st.text_input("Image Number to Start with", 1)
+title = st.text_input("Image Number to Start with", photo_start)
 st.write("The image numbering will start from: ", title)
 
 try:
@@ -389,15 +439,14 @@ with open("images_compressed.zip", "rb") as fp:
         mime="application/zip"
     )
 
-updateTable()
+# if obs_file is not None:
+#     updateTable()
 
 with open("Table_Word.docx", "rb") as fp:
 
-    btn_1 = st.download_button(
-            label="Word File with Table",
-            data=fp,
-            file_name="Table_Word_docx",
-            mime="docx"
+    btn_1 = st.button(
+            label="Update Word File",
+            on_click=updateTable,       
             )
     
     # st.write(btn_1)
@@ -406,8 +455,19 @@ with open("Table_Word.docx", "rb") as fp:
     #     st.write("Running Update Function")
     #     updateTable(up_files)
 
+with open("Table_Word.docx", "rb") as fp:
+
+    btn_1 = st.download_button(
+            label="Download Word File",
+            data=fp,
+            file_name="Table_Word_docx",
+            mime="docx"
+            )
+        
+
+
 os.remove(zip_path)
-shutil.rmtree("images_comp")
+# shutil.rmtree("images_comp")
 
 # st.download_button("Download Images", file_name="bali.jpeg")
     
