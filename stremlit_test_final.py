@@ -270,7 +270,7 @@ def updateTable():
         picture = cell.add_paragraph().add_run().add_picture('images_comp/'+file.name, width=Inches(2.6))
         cell = table.rows[row_no+1].cells[col_no]
         # cell = table.rows[counter+1].cells[counter_cols]
-        st.write(row_no, col_no)
+        # st.write(row_no, col_no)
         cell.text = name
         if col_no<2:
             counter_cols = counter_cols + 1
