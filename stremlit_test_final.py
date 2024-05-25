@@ -232,19 +232,27 @@ def updateTable():
     set_column_width(t.columns[2], docx.shared.Cm(5.5))
     set_column_width(t.columns[3], docx.shared.Cm(2))
     # save the doc
-    document.add_paragraph('')
+    # document.add_paragraph('')
     
     
     
     document.add_heading(section_selected + " - Images", 2)
     
-    table = document.add_table(rows = 7 , cols = 3)
+    _, _, files = next(os.walk(folder))
+    file_count = len(files)
+    st.write(file_count)
+    no_of_rows = int(((file_count-1)//3+1)*2)
+    
+    
+    table = document.add_table(rows = no_of_rows , cols = 3)
+    # st.write("Table Rows " + str(table.rows.))
     # hdr_cells = table.rows[0].cells
     # hdr_cells[0].text = 'Item'     
     # hdr_cells[1].text = 'quantity'
     document.save("Table_Word.docx")
     counter = 0
     counter_cols = 0
+    
     for file in folder.iterdir():
         name = os.path.splitext(file.name)[0]
         img_no = int(name.split(" ")[1])
@@ -252,6 +260,9 @@ def updateTable():
         # st.write(img_no, adj_img_no)
         row_no = (adj_img_no//3) *2
         col_no = int(adj_img_no - (row_no*3/2))
+        # if(row_no>0 and col_no==0):
+        #     table.add_row()
+        #     table.add_row()
         # st.write(img_no, adj_img_no, row_no, col_no)
         # cell = table.rows[counter].cells[counter_cols]
         cell = table.rows[row_no].cells[col_no]
@@ -259,13 +270,15 @@ def updateTable():
         picture = cell.add_paragraph().add_run().add_picture('images_comp/'+file.name, width=Inches(2.6))
         cell = table.rows[row_no+1].cells[col_no]
         # cell = table.rows[counter+1].cells[counter_cols]
-        
+        st.write(row_no, col_no)
         cell.text = name
-        if counter_cols<2:
+        if col_no<2:
             counter_cols = counter_cols + 1
         else:
+            # table.add_row()
             counter_cols = 0
             counter = counter+2
+    document.add_page_break()
     document.save("Table_Word.docx")
     
     
