@@ -21,6 +21,10 @@ from docx import Document
 from docx.shared import Inches
 from docx.enum.section import WD_ORIENT
 from docx.shared import Cm, Inches
+import random
+from random import randint
+from streamlit import session_state
+
 
 
 
@@ -43,6 +47,11 @@ def set_column_width(column, width):
     for cell in column.cells:
         cell.width = width
 
+
+
+def clear_uploader():
+    state["key"] = str(randint(1000, 100000000))
+    
 
 
 def createfile():
@@ -86,6 +95,7 @@ if obs_file is not None:
             # tuple([name] + name_list),
             tuple(section_list),
             index= 0,
+            on_change=clear_uploader,
             # index=name_index_dict[file.name],
             )
     
@@ -174,11 +184,13 @@ if obs_file is not None:
 
 
 
-
+state = session_state
+if "key" not in state:
+    state["key"] = str(randint(1000, 100000000))
 #upload Images
 st.title("Resize Images")
 # st.write('My first app Hello *world!*')
-up_files = st.file_uploader("Upload Image Files", type = ["png", "jpeg", "jpg"] ,accept_multiple_files=True)
+up_files = st.file_uploader("Upload Image Files", type = ["png", "jpeg", "jpg"] ,accept_multiple_files=True, key=state["key"])
 # st.write(up_files)
 
 def resize(img, new_width):
