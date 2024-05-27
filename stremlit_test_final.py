@@ -370,8 +370,8 @@ for file in up_files:
         
         col2_img = st.image(im_resized, width=350)
         st.write(im_resized.size)
-        new_width_dict[file.name]  = st.number_input("new width", value = im_resized.size[0])
-        new_height_dict[file.name] = st.number_input("new height", value = im_resized.size[1])
+        new_width_dict[file.name]  = st.number_input("new width", value = im_resized.size[0], key="nw_"+file.name)
+        new_height_dict[file.name] = st.number_input("new height", value = im_resized.size[1], key="nh_"+file.name)
         # st.write(im_width, im_height)
         st.write(im_resized.size)
     
